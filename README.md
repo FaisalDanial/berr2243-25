@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Step 1: Install Development Tools 
 1. Install VSCode
 - Download from code.visualstudio.com.
@@ -25,3 +26,12 @@ Step 2: Git Basics & Repository Setup
 1. Create a GitHub Account
 - https://education.github.com/pack
 Create a new Git Repository ......
+=======
+# berr2243-25
+Course Code
+git add . 
+git commit -m "Initial commit: Setup documentation"
+git branch -M main
+git remote add origin https://github.com/FaisalDanial/berr2243-25.git
+git push-u origin main
+>>>>>>> 718d97d2486b1deef2702c094a043cbab2abb46f
