@@ -1,0 +1,5 @@
+# Standard Node.js exclusions
+/node_modules
+
+# Exclude AppData/Local/ paths to avoid permission errors
+**/*AppData/** ```gt
