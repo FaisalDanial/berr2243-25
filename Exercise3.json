@@ -1,0 +1,40 @@
+{
+	"info": {
+		"_postman_id": "36aa022e-3ccd-4374-9a8b-427898e837b1",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49662397",
+		"_collection_link": "https://faisaldanial-1268274.postman.co/workspace/FaisalDanial's-Workspace~3ad3bef1-b656-4111-8ff7-0de4a464276e/collection/49662397-36aa022e-3ccd-4374-9a8b-427898e837b1?action=share&source=collection_link&creator=49662397"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"status\": \"cancelled\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rides/6902ec747e664e3420f8c4cf",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rides",
+						"6902ec747e664e3420f8c4cf"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
