@@ -8,13 +8,13 @@
 	},
 	"item": [
 		{
-			"name": "New Request",
+			"name": "rides",
 			"request": {
-				"method": "DELETE",
+				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"status\": \"cancelled\"\r\n}",
+					"raw": "{\r\n\r\n\"pickupLocation\": \"Central Park\",\r\n\r\n\"destination\": \"Times Square\",\r\n\r\n\"driverId\": \"DRIVER123\",\r\n\r\n\"status\": \"requested\"\r\n\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -22,7 +22,66 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/rides/6902ec747e664e3420f8c4cf",
+					"raw": "http://localhost:3000/rides",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rides"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rides",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\"pickupLocation\": \"Central Park\",\r\n\r\n\"destination\": \"Times Square\",\r\n\r\n\"driverId\": \"DRIVER123\",\r\n\r\n\"status\": \"requested\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rides",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rides"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rides",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\r\n\"status\": \"cancelled\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rides/6904b74a65cab996e6ed8184",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -30,7 +89,36 @@
 					"port": "3000",
 					"path": [
 						"rides",
-						"6902ec747e664e3420f8c4cf"
+						"6904b74a65cab996e6ed8184"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "rides",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n\r\n\"status\": \"cancelled\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/rides/6904b74a65cab996e6ed8184",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"rides",
+						"6904b74a65cab996e6ed8184"
 					]
 				}
 			},
