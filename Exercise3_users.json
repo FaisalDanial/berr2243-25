@@ -1,0 +1,128 @@
+{
+	"info": {
+		"_postman_id": "add67d34-0fcd-4da9-acfa-2ec6e25a4757",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49662397",
+		"_collection_link": "https://faisaldanial-1268274.postman.co/workspace/FaisalDanial's-Workspace~3ad3bef1-b656-4111-8ff7-0de4a464276e/collection/49662397-add67d34-0fcd-4da9-acfa-2ec6e25a4757?action=share&source=collection_link&creator=49662397"
+	},
+	"item": [
+		{
+			"name": "users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Faisal Danial\",\r\n    \"email\": \"faisaldsoba00@gmail.com\",\r\n    \"phoneNumber\": \"0111111111\",\r\n    \"accountStatus\": \"active\",\r\n    \"userType\": \"rider\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "users",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Faisal Danial\",\r\n    \"email\": \"faisaldsoba00@gmail.com\",\r\n    \"phoneNumber\": \"0111111111\",\r\n    \"accountStatus\": \"active\",\r\n    \"userType\": \"rider\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "users",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"accountStatus\": \"inactive\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users/6904bc9e17838a04d4563181",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users",
+						"6904bc9e17838a04d4563181"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "users",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"accountStatus\": \"inactive\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/users/6904bc9e17838a04d4563181",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"users",
+						"6904bc9e17838a04d4563181"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
