@@ -1,9 +1,17 @@
 const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb'); // Add ObjectId here
+const { MongoClient, ObjectId } = require('mongodb');
 const port = 3000
 
 const app = express();
 app.use(express.json());
+
+// 🔥 ADD THIS CORS FIX 🔥
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
 
 let db;
 
@@ -14,7 +22,6 @@ async function connectToMongoDB() {
     try {
         await client.connect();
         console.log("Connected to MongoDB!");
-
         db = client.db("testDB");
     } catch (err) {
         console.error("Error:", err);
@@ -27,59 +34,67 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
 
-// GET /rides -Fetch all rides
-app.get('/rides', async (req, res) => {
+// --- USERS ENDPOINTS ---
+
+// POST /users - Create a new user account
+app.post('/users', async (req, res) => {
     try {
-        const rides = await db.collection('rides').find().toArray();
-        res.status(200).json(rides);
+        const result = await db.collection('users').insertOne(req.body);
+        // Status 201 Created
+        res.status(201).json({ id: result.insertedId, message: "User created successfully" });
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch rides" });
+        // Handle invalid data or DB errors
+        res.status(400).json({ error: "Invalid user data" });
     }
 });
 
-// POST /rides - Create a new ride
-app.post('/rides', async (req, res) => {
+// GET /users - Fetch all users
+app.get('/users', async (req, res) => {
     try {
-        const result = await db.collection('rides').insertOne(req.body);
-        res.status(201).json({ id: result.insertedId });
+        const users = await db.collection('users').find().toArray();
+        // Status 200 OK
+        res.status(200).json(users);
     } catch (err) {
-        res.status(400).json({ error: "Invalid ride data" });
+        res.status(500).json({ error: "Failed to fetch users" });
     }
 });
 
-// PATCH /rides/:id Update ride status
-app.patch('/rides/:id', async (req, res) => {
+// PATCH /users/:id - Update user details (e.g., name, phone)
+app.patch('/users/:id', async (req, res) => {
     try {
-        const result = await db.collection('rides').updateOne(
-        {_id: new ObjectId(req.params.id) },
-        { $set: { status: req.body.status } }
-    );
+        // Use $set to update fields provided in the request body
+        const result = await db.collection('users').updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: req.body } 
+        );
 
-    if (result.modifiedCount === 0) {
-        return res.status(404).json({ error: "Ride not found" });
-    }
-    res.status(200).json({ updated: result.modifiedCount });
-
+        if (result.modifiedCount === 0) {
+            // If the ID is valid but no changes were made or the user wasn't found
+            return res.status(404).json({ error: "User not found or no change made" });
+        }
+        // Status 200 OK
+        res.status(200).json({ updated: result.modifiedCount });
     } catch (err) {
         // Handle invalid ID format or DB errors
-        res.status(400).json({ error: "Invalid ride ID or data" });
+        res.status(400).json({ error: "Invalid user ID or data" });
     }
 });
 
-// DELETE /rides/:id -Cancel a ride
-
-app.delete('/rides/:id', async (req, res) => {
+// DELETE /users/:id - Delete a user account
+app.delete('/users/:id', async (req, res) => {
     try {
-        const result = await db.collection('rides').deleteOne (
-            {_id: new ObjectId(req.params.id) }
+        const result = await db.collection('users').deleteOne (
+            { _id: new ObjectId(req.params.id) }
         );
 
         if (result.deletedCount === 0) {
-            return res.status(404).json({ error: "Ride not found" });
+            // If the ID is valid but the user wasn't found
+            return res.status(404).json({ error: "User not found" });
         }
-        res.status(200).json({ deleted: result.deletedCount });
+        // Status 200 OK
+        res.status(200).json({ deleted: result.deletedCount, message: "User deleted" });
 
     } catch (err) {
-        res.status(400).json({ error: "Invalid ride ID" });
+        res.status(400).json({ error: "Invalid user ID" });
     }
 });
