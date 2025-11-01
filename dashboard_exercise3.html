@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride-Hailing Users Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        button.delete {
+            background: #e74c3c;
+        }
+        
+        button.delete:hover {
+            background: #c0392b;
+        }
+        
+        button.success {
+            background: #27ae60;
+        }
+        
+        button.success:hover {
+            background: #219a52;
+        }
+        
+        .users-list {
+            grid-column: 1 / -1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-active {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .status-inactive {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        .message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Ride-Hailing Dashboard</h1>
+            <div class="subtitle">User Management System</div>
+        </header>
+        
+        <div class="dashboard">
+            <!-- Create User Section -->
+            <div class="section">
+                <h3>➕ Create New User</h3>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="createName" placeholder="Enter full name">
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="createEmail" placeholder="Enter email address">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="text" id="createPhone" placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label>User Type:</label>
+                    <select id="createUserType">
+                        <option value="rider">Rider</option>
+                        <option value="driver">Driver</option>
+                    </select>
+                </div>
+                <button onclick="createUser()" class="success">Create User</button>
+            </div>
+
+            <!-- Update User Section -->
+            <div class="section">
+                <h3>✏️ Update User</h3>
+                <div class="form-group">
+                    <label>User ID:</label>
+                    <input type="text" id="updateId" placeholder="Enter user ID">
+                </div>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="updateName" placeholder="New name (optional)">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number:</label>
+                    <input type="text" id="updatePhone" placeholder="New phone (optional)">
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="updateStatus">
+                        <option value="">No change</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <button onclick="updateUser()">Update User</button>
+            </div>
+
+            <!-- Users List Section -->
+            <div class="section users-list">
+                <h3>👥 All Users</h3>
+                <button onclick="fetchUsers()">🔄 Refresh Users</button>
+                <div id="message"></div>
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        // Display message to user
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = message;
+            messageDiv.className = `message ${type}-message`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        // Fetch and display all users
+        async function fetchUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                if (!response.ok) throw new Error('Failed to fetch users');
+                
+                const users = await response.json();
+                const tbody = document.getElementById('usersTableBody');
+                
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td><small>${user._id}</small></td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.phoneNumber || 'N/A'}</td>
+                        <td>${user.userType || 'N/A'}</td>
+                        <td class="status-${user.accountStatus || 'active'}">${user.accountStatus || 'active'}</td>
+                        <td>
+                            <button onclick="deleteUser('${user._id}')" class="delete">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                showMessage(`Loaded ${users.length} user(s) successfully`);
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error fetching users: ' + error.message, 'error');
+            }
+        }
+
+        // Create a new user
+        async function createUser() {
+            const userData = {
+                name: document.getElementById('createName').value,
+                email: document.getElementById('createEmail').value,
+                phoneNumber: document.getElementById('createPhone').value,
+                userType: document.getElementById('createUserType').value,
+                accountStatus: 'active'
+            };
+
+            // Basic validation
+            if (!userData.name || !userData.email) {
+                showMessage('Name and email are required', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) throw new Error('Failed to create user');
+                
+                const result = await response.json();
+                showMessage(`User created successfully! ID: ${result.id}`);
+                
+                // Clear form
+                document.getElementById('createName').value = '';
+                document.getElementById('createEmail').value = '';
+                document.getElementById('createPhone').value = '';
+                
+                // Refresh users list
+                fetchUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error creating user: ' + error.message, 'error');
+            }
+        }
+
+        // Update user details
+        async function updateUser() {
+            const userId = document.getElementById('updateId').value;
+            if (!userId) {
+                showMessage('User ID is required', 'error');
+                return;
+            }
+
+            const updateData = {};
+            const name = document.getElementById('updateName').value;
+            const phone = document.getElementById('updatePhone').value;
+            const status = document.getElementById('updateStatus').value;
+
+            if (name) updateData.name = name;
+            if (phone) updateData.phoneNumber = phone;
+            if (status) updateData.accountStatus = status;
+
+            if (Object.keys(updateData).length === 0) {
+                showMessage('No changes provided', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('User not found');
+                    }
+                    throw new Error('Failed to update user');
+                }
+                
+                const result = await response.json();
+                showMessage(`User updated successfully! Modified: ${result.updated}`);
+                
+                // Clear form
+                document.getElementById('updateId').value = '';
+                document.getElementById('updateName').value = '';
+                document.getElementById('updatePhone').value = '';
+                document.getElementById('updateStatus').value = '';
+                
+                // Refresh users list
+                fetchUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error updating user: ' + error.message, 'error');
+            }
+        }
+
+        // Delete a user
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('User not found');
+                    }
+                    throw new Error('Failed to delete user');
+                }
+                
+                const result = await response.json();
+                showMessage(`User deleted successfully! Deleted: ${result.deleted}`);
+                
+                // Refresh users list
+                fetchUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error deleting user: ' + error.message, 'error');
+            }
+        }
+
+        // Load users when page loads
+        document.addEventListener('DOMContentLoaded', fetchUsers);
+    </script>
+</body>
+</html>
