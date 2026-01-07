@@ -33,7 +33,7 @@ let db;
 
 // ==================== DATABASE INITIALIZATION ====================
 async function connectToMongoDB() {
-    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
+    const uri = process.env.MONGODB_URI || "mongodb+srv://FaisalDanial:JaiSoba02%40@benr2423.m9n3hhm.mongodb.net/maximDB?appName=BENR2423";
     const client = new MongoClient(uri);
     try {
         await client.connect();
