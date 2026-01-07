@@ -23,7 +23,7 @@ let db;
 
 // ==================== DATABASE INITIALIZATION ====================
 async function connectToMongoDB() {
-    const uri = "mongodb://localhost:27017"; 
+    const uri = process.env.MONGODB_URI || "mongodb://localhost:27017";
     const client = new MongoClient(uri);
     try {
         await client.connect();
