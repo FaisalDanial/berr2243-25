@@ -2,9 +2,13 @@ const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 
-const port = 3000;
+console.log('MONGODB_URI loaded:', process.env.MONGODB_URI ? 'YES' : 'NO');
+
+const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "maxim_secret_key_123";
 const SALT_ROUNDS = 10;
 
