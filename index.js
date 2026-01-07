@@ -2,11 +2,17 @@ const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-}
 
-console.log('MONGODB_URI loaded:', process.env.MONGODB_URI ? 'YES' : 'NO');
+// Simple approach - always load dotenv (it's okay if .env doesn't exist in Azure)
+require('dotenv').config();
+
+// Debug to see what environment variables are available
+console.log('=== ENVIRONMENT VARIABLES ===');
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+console.log('PORT:', process.env.PORT || '3000 (default)');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('=============================');
 
 const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "maxim_secret_key_123";
