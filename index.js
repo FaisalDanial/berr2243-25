@@ -32,29 +32,17 @@ app.use((req, res, next) => {
 // ==================== ROOT ENDPOINT ====================
 // Add this - Simple root endpoint to show API is running
 app.get('/', (req, res) => {
-    const malaysiaTime = new Date(new Date().getTime() + (8 * 60 * 60 * 1000));
+    const now = new Date();
+    const malaysiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
     
     res.json({ 
         message: "🚀 Maxim Backend API is running successfully!",
         status: "active",
         mongodb: "connected",
-        endpoints: {
-            auth: {
-                register_customer: "POST /api/auth/register/customer",
-                register_driver: "POST /api/auth/register/driver",
-                login: "POST /api/auth/login"
-            },
-            rides: {
-                request: "POST /api/rides",
-                cancel: "PATCH /api/rides/:id/cancel"
-            },
-            admin: {
-                rates: "GET /api/admin/rates",
-                users: "GET /api/admin/users"
-            }
-        },
+        endpoints: { ... }, // keep your endpoints object
         timestamp: malaysiaTime.toISOString(),
-        malaysia_time: malaysiaTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })
+        malaysia_time: malaysiaTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }),
+        server_time_utc: now.toISOString()
     });
 });
 
