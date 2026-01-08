@@ -29,6 +29,33 @@ app.use((req, res, next) => {
     next();
 });
 
+// ==================== ROOT ENDPOINT ====================
+// Add this - Simple root endpoint to show API is running
+app.get('/', (req, res) => {
+    res.json({ 
+        message: "🚀 Maxim Backend API is running successfully!",
+        status: "active",
+        mongodb: "connected",
+        endpoints: {
+            auth: {
+                register_customer: "POST /api/auth/register/customer",
+                register_driver: "POST /api/auth/register/driver",
+                login: "POST /api/auth/login"
+            },
+            rides: {
+                request: "POST /api/rides",
+                cancel: "PATCH /api/rides/:id/cancel"
+            },
+            admin: {
+                rates: "GET /api/admin/rates",
+                users: "GET /api/admin/users"
+            }
+        },
+        timestamp: new Date().toISOString()
+    });
+});
+
+
 let db;
 
 // ==================== DATABASE INITIALIZATION ====================
