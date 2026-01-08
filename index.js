@@ -39,13 +39,26 @@ app.get('/', (req, res) => {
         message: "🚀 Maxim Backend API is running successfully!",
         status: "active",
         mongodb: "connected",
-        endpoints: { ... }, // keep your endpoints object
+        endpoints: {
+            auth: {
+                register_customer: "POST /api/auth/register/customer",
+                register_driver: "POST /api/auth/register/driver",
+                login: "POST /api/auth/login"
+            },
+            rides: {
+                request: "POST /api/rides",
+                cancel: "PATCH /api/rides/:id/cancel"
+            },
+            admin: {
+                rates: "GET /api/admin/rates",
+                users: "GET /api/admin/users"
+            }
+        },
         timestamp: malaysiaTime.toISOString(),
         malaysia_time: malaysiaTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }),
         server_time_utc: now.toISOString()
     });
 });
-
 
 let db;
 
@@ -84,7 +97,7 @@ connectToMongoDB();
 
 // Helper: Malaysia Time
 function getMalaysiaTime() {
-    return new Date(new Date().getTime() + (8 * 60 * 60 * 1000));
+    return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
 }
 
 // ==================== MIDDLEWARE ====================
