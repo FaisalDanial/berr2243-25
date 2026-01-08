@@ -32,6 +32,8 @@ app.use((req, res, next) => {
 // ==================== ROOT ENDPOINT ====================
 // Add this - Simple root endpoint to show API is running
 app.get('/', (req, res) => {
+    const malaysiaTime = new Date(new Date().getTime() + (8 * 60 * 60 * 1000));
+    
     res.json({ 
         message: "🚀 Maxim Backend API is running successfully!",
         status: "active",
@@ -51,7 +53,8 @@ app.get('/', (req, res) => {
                 users: "GET /api/admin/users"
             }
         },
-        timestamp: new Date().toISOString()
+        timestamp: malaysiaTime.toISOString(),
+        malaysia_time: malaysiaTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })
     });
 });
 
