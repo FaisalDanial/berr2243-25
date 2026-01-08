@@ -32,29 +32,31 @@ app.use((req, res, next) => {
 // ==================== ROOT ENDPOINT ====================
 // Add this - Simple root endpoint to show API is running
 app.get('/', (req, res) => {
-    const now = new Date();
-    const malaysiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
+    const malaysiaTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
     
     res.json({ 
         message: "🚀 Maxim Backend API is running successfully!",
         status: "active",
         mongodb: "connected",
-        endpoints: {
-            auth: {
-                register_customer: "POST /api/auth/register/customer",
-                register_driver: "POST /api/auth/register/driver",
-                login: "POST /api/auth/login"
-            },
-            rides: {
-                request: "POST /api/rides",
-                cancel: "PATCH /api/rides/:id/cancel"
-            },
-            admin: {
-                rates: "GET /api/admin/rates",
-                users: "GET /api/admin/users"
-            }
-        },
+        endpoints: [
+            "POST /api/auth/register/admin",
+            "POST /api/auth/login (as Admin)",
+            "POST /api/admin/rates (Admin Only - Set Global Rates)",
+            "POST /api/auth/register/customer",
+            "POST /api/auth/login (as Customer)",
+            "POST /api/auth/register/driver",
+            "POST /api/auth/login (as Driver)",
+            "PATCH /api/drivers/status (Driver: Go Online/Offline)",
+            "POST /api/rides (Customer: Request Ride)",
+            "GET /api/rides/available (Driver: View Available Rides)",
+            "PATCH /api/rides/:id/accept (Driver: Accept Ride)",
+            "PATCH /api/rides/:id/complete (Driver: Complete Ride)",
+            "GET /api/admin/users (Admin: View All Data)",
+            "PATCH /api/admin/users/:id/block (Admin: Block a Driver/User)",
+            "DELETE /api/admin/users/:id (Admin: Delete a Driver/User)"
+        ],
         timestamp: malaysiaTime.toISOString(),
+        count: 15
     });
 });
 
