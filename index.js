@@ -55,8 +55,6 @@ app.get('/', (req, res) => {
             }
         },
         timestamp: malaysiaTime.toISOString(),
-        malaysia_time: malaysiaTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }),
-        server_time_utc: now.toISOString()
     });
 });
 
