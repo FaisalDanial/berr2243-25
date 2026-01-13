@@ -3,16 +3,11 @@ const { MongoClient, ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// Simple approach - always load dotenv (it's okay if .env doesn't exist in Azure)
 require('dotenv').config();
 
-// Debug to see what environment variables are available
-console.log('=== ENVIRONMENT VARIABLES ===');
-console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
-console.log('PORT:', process.env.PORT || '3000 (default)');
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
-console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
-console.log('=============================');
+// Debug Environment
+console.log('=== MAXIM SERVER STARTING ===');
+console.log('PORT:', process.env.PORT || '3000');
 
 const port = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "maxim_secret_key_123";
@@ -29,35 +24,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// ==================== ROOT ENDPOINT ====================
-// Add this - Simple root endpoint to show API is running
-app.get('/', (req, res) => {
-    const malaysiaTime = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
-    
-    res.json({ 
-        message: "🚀 Maxim Backend API is running successfully!",
-        status: "active",
-        mongodb: "connected",
-        endpoints: [
-            "POST /api/auth/register/admin",
-            "POST /api/auth/login (as Admin)",
-            "POST /api/admin/rates (Admin Only - Set Global Rates)",
-            "POST /api/auth/register/customer",
-            "POST /api/auth/login (as Customer)",
-            "POST /api/auth/register/driver",
-            "POST /api/auth/login (as Driver)",
-            "PATCH /api/drivers/status (Driver: Go Online/Offline)",
-            "POST /api/rides (Customer: Request Ride)",
-            "GET /api/rides/available (Driver: View Available Rides)",
-            "PATCH /api/rides/:id/accept (Driver: Accept Ride)",
-            "PATCH /api/rides/:id/complete (Driver: Complete Ride)",
-            "GET /api/admin/users (Admin: View All Data)",
-            "PATCH /api/admin/users/:id/block (Admin: Block a Driver/User)",
-            "DELETE /api/admin/users/:id (Admin: Delete a Driver/User)"
-        ],
-        timestamp: malaysiaTime.toISOString(),
-        count: 15
-    });
+// REQUEST LOGGER (See what is happening!)
+app.use((req, res, next) => {
+    console.log(`➡️  INCOMING REQUEST: ${req.method} ${req.url}`);
+    next();
 });
 
 let db;
@@ -71,31 +41,22 @@ async function connectToMongoDB() {
         db = client.db("maximDB");
         console.log("✅ Connected to MongoDB: maximDB");
         
-        // 1. Ensure Unique Emails for ALL 3 Actors (Separate Collections)
-        await db.collection('customers').createIndex({ email: 1 }, { unique: true });   // Customers
-        await db.collection('drivers').createIndex({ email: 1 }, { unique: true });     // Drivers
-        await db.collection('admins').createIndex({ email: 1 }, { unique: true });      // Admins
+        await db.collection('customers').createIndex({ email: 1 }, { unique: true });
+        await db.collection('drivers').createIndex({ email: 1 }, { unique: true });
+        await db.collection('admins').createIndex({ email: 1 }, { unique: true });
         
-        // 2. Initialize Rates Collection
         const rates = await db.collection('rates').findOne({ type: 'standard' });
         if (!rates) {
             await db.collection('rates').insertOne({
-                type: 'standard',
-                baseFare: 5.00,
-                perKm: 2.50,
-                updatedAt: new Date(),
-                updatedBy: 'system'
+                type: 'standard', baseFare: 5.00, perKm: 2.50, updatedAt: new Date(), updatedBy: 'system'
             });
-            console.log("✅ Initialized Default Rate Configuration.");
         }
-
     } catch (err) {
         console.error("❌ MongoDB Connection Error:", err);
     }
 }
 connectToMongoDB();
 
-// Helper: Malaysia Time
 function getMalaysiaTime() {
     return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
 }
@@ -114,51 +75,82 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Enforce Admin Access
 const isAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ error: "Admin access required" });
-    }
+    if (req.user.role !== 'admin') return res.status(403).json({ error: "Admin access required" });
     next();
 };
 
-// ==================== 1. AUTHENTICATION (SEPARATE COLLECTIONS) ====================
+// ==================== 🚨 VIP SECTION (PRIORITY ROUTES) ====================
+// These are placed at the TOP so nothing can block them.
 
-// Register Customer (Saves to 'customers')
+app.get('/', (req, res) => {
+    res.json({ message: "🚀 Maxim Backend API is running!", timestamp: getMalaysiaTime() });
+});
+
+// ⭐ AVAILABLE RIDES (For Drivers)
+app.get('/api/rides/available', authenticateToken, async (req, res) => {
+    console.log("✅ HIT: /api/rides/available endpoint"); // Debug Log
+    try {
+        if (req.user.role !== 'driver') return res.status(403).json({ error: "Not a driver" });
+
+        const driver = await db.collection('drivers').findOne({ _id: new ObjectId(req.user.id) });
+        if (!driver) return res.status(404).json({ error: "Driver not found" });
+
+        if (driver.availabilityStatus !== 'online') {
+            return res.status(403).json({ error: "You are offline. Go Online to see rides." });
+        }
+
+        const rides = await db.collection('rides').find({ status: 'requested' }).toArray();
+        res.json(rides);
+
+    } catch (err) {
+        console.error("❌ SERVER CRASH in available:", err);
+        res.status(500).json({ error: "Server Error" });
+    }
+});
+
+// ⭐ RIDE HISTORY (For All)
+app.get('/api/rides/history/all', authenticateToken, async (req, res) => {
+    console.log("✅ HIT: /api/rides/history/all endpoint"); // Debug Log
+    try {
+        let query = {};
+        if (req.user.role === 'customer') query = { customerId: new ObjectId(req.user.id) };
+        else if (req.user.role === 'driver') query = { driverId: new ObjectId(req.user.id) };
+        
+        const rides = await db.collection('rides').find(query).sort({ createdAt: -1 }).toArray();
+        res.json(rides);
+    } catch (err) { res.status(500).json({ error: "Server Error" }); }
+});
+
+// ==================== AUTHENTICATION ====================
+
 app.post('/api/auth/register/customer', async (req, res) => {
     try {
         const { email, password, name, phone } = req.body;
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-        
         const result = await db.collection('customers').insertOne({
-            email, passwordHash, name, phone,
-            role: 'customer', isBlocked: false, createdAt: getMalaysiaTime()
+            email, passwordHash, name, phone, role: 'customer', isBlocked: false, createdAt: getMalaysiaTime()
         });
         res.status(201).json({ message: "Customer created", userId: result.insertedId });
     } catch (err) { res.status(409).json({ error: "Email already exists" }); }
 });
 
-// Register Driver (Saves to 'drivers')
 app.post('/api/auth/register/driver', async (req, res) => {
     try {
         const { email, password, name, vehicleDetails } = req.body;
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-        
         const result = await db.collection('drivers').insertOne({
             email, passwordHash, name, vehicleDetails,
-            role: 'driver', availabilityStatus: 'offline', isBlocked: false,
-            walletBalance: 0.00, createdAt: getMalaysiaTime()
+            role: 'driver', availabilityStatus: 'offline', isBlocked: false, walletBalance: 0.00, createdAt: getMalaysiaTime()
         });
         res.status(201).json({ message: "Driver created", driverId: result.insertedId });
     } catch (err) { res.status(409).json({ error: "Email already exists" }); }
 });
 
-// Register Admin (Saves to 'admins')
 app.post('/api/auth/register/admin', async (req, res) => {
     try {
         const { email, password, name } = req.body;
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-        
         const result = await db.collection('admins').insertOne({
             email, passwordHash, name, role: 'admin', isBlocked: false, createdAt: getMalaysiaTime()
         });
@@ -166,46 +158,44 @@ app.post('/api/auth/register/admin', async (req, res) => {
     } catch (err) { res.status(400).json({ error: "Error creating admin" }); }
 });
 
-// Unified Login (Checks ALL 3 Collections)
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
-        let user = null;
-
-        // 1. Check Customers
-        user = await db.collection('customers').findOne({ email });
-
-        // 2. Check Drivers
+        let user = await db.collection('customers').findOne({ email });
         if (!user) user = await db.collection('drivers').findOne({ email });
-
-        // 3. Check Admins
         if (!user) user = await db.collection('admins').findOne({ email });
 
-        // Validate
         if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
             return res.status(401).json({ error: "Invalid credentials" });
         }
-        
         if (user.isBlocked) return res.status(403).json({ error: "Account is blocked by Admin." });
 
-        const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role }, 
-            JWT_SECRET, { expiresIn: '2h' }
-        );
-
+        const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '24h' });
         res.json({ message: `Login successful as ${user.role}`, token, role: user.role, userId: user._id });
     } catch (err) { res.status(500).json({ error: "Server error" }); }
 });
 
-// ==================== RELATIONSHIP 1: CUSTOMER ↔️ RIDE ====================
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+    try {
+        let collectionName = 'customers';
+        if (req.user.role === 'driver') collectionName = 'drivers';
+        if (req.user.role === 'admin') collectionName = 'admins';
+
+        const user = await db.collection(collectionName).findOne({ _id: new ObjectId(req.user.id) });
+        if (!user) return res.status(404).json({ error: "User not found" });
+        
+        const { passwordHash, ...safeUser } = user; 
+        res.json(safeUser);
+    } catch (err) { res.status(500).json({ error: "Server Error" }); }
+});
+
+// ==================== RIDE ACTIONS (ID Routes last) ====================
+
 
 app.post('/api/rides', authenticateToken, async (req, res) => {
     if (req.user.role !== 'customer') return res.status(403).json({ error: "Only customers can book" });
-
     const { pickupLocation, dropoffLocation, distanceKm } = req.body;
-    if (!pickupLocation || !dropoffLocation) return res.status(400).json({ error: "Missing location data" });
-
+    
     const rate = await db.collection('rates').findOne({ type: 'standard' });
     const dist = distanceKm || 5; 
     const estFare = (rate.baseFare + (rate.perKm * dist));
@@ -213,108 +203,84 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
     const rideData = {
         customerId: new ObjectId(req.user.id),
         pickupLocation, dropoffLocation, distanceKm: dist,
-        status: 'requested',
-        estimatedFare: parseFloat(estFare.toFixed(2)),
-        driverId: null,
-        createdAt: getMalaysiaTime()
+        status: 'requested', estimatedFare: parseFloat(estFare.toFixed(2)), driverId: null, createdAt: getMalaysiaTime()
     };
-
     const result = await db.collection('rides').insertOne(rideData);
     res.status(201).json({ message: "Ride requested", rideId: result.insertedId, fare: rideData.estimatedFare });
 });
 
 app.patch('/api/rides/:id/cancel', authenticateToken, async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
     const result = await db.collection('rides').updateOne(
         { _id: new ObjectId(req.params.id), customerId: new ObjectId(req.user.id), status: 'requested' },
         { $set: { status: 'cancelled', cancelledAt: getMalaysiaTime() } }
     );
-    if (result.modifiedCount === 0) return res.status(409).json({ error: "Cannot cancel: Ride started or not found." });
+    if (result.modifiedCount === 0) return res.status(409).json({ error: "Cannot cancel ride." });
     res.json({ message: "Ride cancelled" });
 });
 
-// ==================== RELATIONSHIP 2: DRIVER ↔️ RIDE ====================
+app.patch('/api/rides/:id/rate', authenticateToken, async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
+    const { rating } = req.body; 
+    await db.collection('rides').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { rating: parseInt(rating) } });
+    res.json({ message: "Driver rated successfully! ⭐" });
+});
 
-// 1. Driver Status Management
+// 👇 THE GENERIC ID ROUTE (MUST BE LAST)
+app.get('/api/rides/:id', authenticateToken, async (req, res) => {
+    console.log(`⚠️ Hitting Generic ID Route for: ${req.params.id}`); // Debug Log
+
+    if (!ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ error: "Invalid ID format for ride lookup" });
+    }
+    try {
+        const ride = await db.collection('rides').findOne({ _id: new ObjectId(req.params.id) });
+        if (!ride) return res.status(404).json({ error: "Ride not found" });
+        res.json(ride);
+    } catch (err) { res.status(500).json({ error: "Server Error" }); }
+});
+
+// ==================== DRIVER ACTIONS ====================
+
 app.patch('/api/drivers/status', authenticateToken, async (req, res) => {
     if (req.user.role !== 'driver') return res.status(403).json({ error: "Not a driver" });
     const { status } = req.body; 
-
     if (status === 'online') {
         const driver = await db.collection('drivers').findOne({ _id: new ObjectId(req.user.id) });
         if (!driver.vehicleDetails) return res.status(400).json({ error: "Register vehicle first." });
     }
-
-    await db.collection('drivers').updateOne(
-        { _id: new ObjectId(req.user.id) },
-        { $set: { availabilityStatus: status } }
-    );
+    await db.collection('drivers').updateOne({ _id: new ObjectId(req.user.id) }, { $set: { availabilityStatus: status } });
     res.json({ message: `Status updated to ${status}` });
 });
 
-// 2. View Available Rides
-app.get('/api/rides/available', authenticateToken, async (req, res) => {
-    if (req.user.role !== 'driver') return res.status(403).json({ error: "Not a driver" });
-
-    const driver = await db.collection('drivers').findOne({ _id: new ObjectId(req.user.id) });
-    if (driver.availabilityStatus !== 'online') return res.status(403).json({ error: "You are offline." });
-
-    const rides = await db.collection('rides').find({ status: 'requested' }).toArray();
-    res.json(rides);
-});
-
-// 3. Accept Ride
 app.patch('/api/rides/:id/accept', authenticateToken, async (req, res) => {
     if (req.user.role !== 'driver') return res.status(403).json({ error: "Not a driver" });
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
 
     const result = await db.collection('rides').updateOne(
         { _id: new ObjectId(req.params.id), status: 'requested' }, 
-        { 
-            $set: { 
-                status: 'accepted', 
-                driverId: new ObjectId(req.user.id),
-                acceptedAt: getMalaysiaTime() 
-            } 
-        }
+        { $set: { status: 'accepted', driverId: new ObjectId(req.user.id), acceptedAt: getMalaysiaTime() } }
     );
-
     if (result.modifiedCount === 0) return res.status(409).json({ error: "Ride already taken." });
     res.json({ message: "Ride accepted" });
 });
 
-// 4. Complete Ride (UPDATED WITH WALLET FIX)
 app.patch('/api/rides/:id/complete', authenticateToken, async (req, res) => {
     if (req.user.role !== 'driver') return res.status(403).json({ error: "Not a driver" });
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
 
-    // 1. Fetch Ride First to get the fare
-    const ride = await db.collection('rides').findOne({ 
-        _id: new ObjectId(req.params.id), 
-        driverId: new ObjectId(req.user.id) 
-    });
-
+const ride = await db.collection('rides').findOne({ _id: new ObjectId(req.params.id), driverId: new ObjectId(req.user.id) });
     if (!ride) return res.status(404).json({ error: "Ride not found or not yours" });
 
-    // 2. Mark as Completed
     await db.collection('rides').updateOne(
         { _id: new ObjectId(req.params.id) },
-        { 
-            $set: { 
-                status: 'completed', 
-                completedAt: getMalaysiaTime(),
-                finalFare: ride.estimatedFare 
-            } 
-        }
+        { $set: { status: 'completed', completedAt: getMalaysiaTime(), finalFare: ride.estimatedFare } }
     );
-
-    // 3. Add Money to Driver's Wallet ($inc)
-    await db.collection('drivers').updateOne(
-        { _id: new ObjectId(req.user.id) },
-        { $inc: { walletBalance: ride.estimatedFare } }
-    );
-
+    await db.collection('drivers').updateOne({ _id: new ObjectId(req.user.id) }, { $inc: { walletBalance: ride.estimatedFare } });
     res.json({ message: "Ride completed", earned: ride.estimatedFare });
 });
 
-// ==================== RELATIONSHIP 3: ADMIN ↔️ RATE ====================
+// ==================== ADMIN ENDPOINTS ====================
 
 app.post('/api/admin/rates', authenticateToken, isAdmin, async (req, res) => {
     const { baseFare, perKm } = req.body;
@@ -331,55 +297,28 @@ app.get('/api/admin/rates', authenticateToken, isAdmin, async (req, res) => {
     res.json(rates);
 });
 
-// ==================== RELATIONSHIP 4 & 5: ADMIN ↔️ USER/DRIVER ====================
-
-// View All Users
 app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
     const customers = await db.collection('customers').find().toArray();
     const drivers = await db.collection('drivers').find().toArray();
     const admins = await db.collection('admins').find().toArray();
-    res.json({ 
-        counts: { customers: customers.length, drivers: drivers.length, admins: admins.length },
-        customers, drivers, admins
-    });
+    res.json({ counts: { customers: customers.length, drivers: drivers.length, admins: admins.length }, customers, drivers, admins });
 });
 
-// Block/Unblock
 app.patch('/api/admin/users/:id/block', authenticateToken, isAdmin, async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
     const { isBlocked } = req.body;
-    
-    let result = await db.collection('customers').updateOne(
-        { _id: new ObjectId(req.params.id) }, { $set: { isBlocked } }
-    );
-
-    if (result.matchedCount === 0) {
-        result = await db.collection('drivers').updateOne(
-            { _id: new ObjectId(req.params.id) }, { $set: { isBlocked } }
-        );
-    }
-    
-    if (result.matchedCount === 0) {
-         result = await db.collection('admins').updateOne(
-            { _id: new ObjectId(req.params.id) }, { $set: { isBlocked } }
-        );
-    }
-
-    if (result.matchedCount === 0) return res.status(404).json({ error: "Customer/Driver/Admin not found" });
+    let result = await db.collection('customers').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { isBlocked } });
+    if (result.matchedCount === 0) result = await db.collection('drivers').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { isBlocked } });
+    if (result.matchedCount === 0) result = await db.collection('admins').updateOne({ _id: new ObjectId(req.params.id) }, { $set: { isBlocked } });
+    if (result.matchedCount === 0) return res.status(404).json({ error: "User not found" });
     res.json({ message: `Block status updated to ${isBlocked}` });
 });
 
-// Delete User
 app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: "Invalid ID" });
     let result = await db.collection('customers').deleteOne({ _id: new ObjectId(req.params.id) });
-    
-    if (result.deletedCount === 0) {
-        result = await db.collection('drivers').deleteOne({ _id: new ObjectId(req.params.id) });
-    }
-    
-    if (result.deletedCount === 0) {
-        result = await db.collection('admins').deleteOne({ _id: new ObjectId(req.params.id) });
-    }
-    
+    if (result.deletedCount === 0) result = await db.collection('drivers').deleteOne({ _id: new ObjectId(req.params.id) });
+    if (result.deletedCount === 0) result = await db.collection('admins').deleteOne({ _id: new ObjectId(req.params.id) });
     if (result.deletedCount === 0) return res.status(404).json({ error: "User not found" });
     res.status(204).send();
 });
@@ -388,5 +327,3 @@ app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) 
 app.listen(port, () => {
     console.log(`🚀 Maxim App Server running on port ${port}`);
 });
-
-//done
