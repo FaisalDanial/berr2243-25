@@ -80,8 +80,8 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// ==================== 🚨 VIP SECTION (PRIORITY ROUTES) ====================
-// These are placed at the TOP so nothing can block them.
+// ==================== ROOT ENDPOINT ====================
+// Simple root endpoint to show API is running
 
 app.get('/', (req, res) => {
     res.json({ message: "🚀 Maxim Backend API is running!", timestamp: getMalaysiaTime() });
