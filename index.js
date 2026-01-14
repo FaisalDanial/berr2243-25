@@ -197,8 +197,8 @@ app.post('/api/rides', authenticateToken, async (req, res) => {
     const { pickupLocation, dropoffLocation, distanceKm } = req.body;
     
     const rate = await db.collection('rates').findOne({ type: 'standard' });
-    const dist = distanceKm || 5; 
-    const estFare = (rate.baseFare + (rate.perKm * dist));
+    const dist = (distanceKm/2.5); 
+    const estFare = (rate.baseFare*dist);
 
     const rideData = {
         customerId: new ObjectId(req.user.id),
