@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxim DB | Premium Ride Hailing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 🌑 PREMIUM DARK THEME --- */
+        :root {
+            --bg-dark: #0f0c29;
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --gold-accent: #FFD700;
+            --gold-glow: 0 0 15px rgba(255, 215, 0, 0.4);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* --- 🧊 GLASSMORPHISM CARDS --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            padding: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- 🧭 NAVIGATION --- */
+        .navbar {
+            background: rgba(0, 0, 0, 0.3) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            font-size: 1.5rem;
+        }
+
+        .brand-gold { color: var(--gold-accent); text-shadow: var(--gold-glow); }
+
+        /* --- 🔘 BUTTONS & INPUTS --- */
+        .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--gold-accent);
+            box-shadow: var(--gold-glow);
+            color: white;
+        }
+
+        /* 👇 ADD THIS NEW BLOCK */
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.8) !important; /* Bright white text */
+            opacity: 1; /* Fix for some browsers */
+        }
+
+        .btn-gold {
+            background: linear-gradient(45deg, #FFD700, #FDB931);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--gold-glow);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            color: #000;
+        }
+
+        .btn-action {
+            border-radius: 12px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        /* --- ✨ ANIMATIONS --- */
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- ⭐ RATING STARS --- */
+        .rating-btn {
+            font-size: 2.5rem;
+            background: none;
+            border: none;
+            color: #444;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .rating-btn.active, .rating-btn:hover {
+            color: var(--gold-accent);
+            transform: scale(1.2);
+            text-shadow: var(--gold-glow);
+        }
+
+        /* --- 📱 DASHBOARD LAYOUTS --- */
+        .dashboard { display: none; }
+        .badge-custom { padding: 8px 12px; border-radius: 8px; }
+        
+        /* Table Styling */
+        .table-glass {
+            color: white;
+            vertical-align: middle;
+        }
+        .table-glass td, .table-glass th {
+            background: transparent;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem;
+        }
+        .table-glass tr:hover td {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0c29; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-accent); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">MAXIM <span class="brand-gold">DB</span></a>
+            <div class="d-flex align-items-center">
+                <span id="userInfo" class="me-3 text-secondary" style="font-size: 0.9rem; font-weight: 300;"></span>
+                <button id="logoutBtn" class="btn btn-outline-light btn-sm rounded-pill px-4 d-none" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 100px; padding-bottom: 50px;">
+
+        <div id="authSection" class="fade-in-up">
+            <div class="row justify-content-center">
+                <div class="col-md-5 col-lg-4">
+                    <div class="glass-card text-center mt-5">
+                        <div class="mb-4">
+                            <h1 style="font-size: 3rem;">🚖</h1>
+                            <h2 class="fw-bold text-white mb-1">Welcome Back</h2>
+                            <p class="text-secondary small">Your premium ride awaits.</p>
+                        </div>
+                        
+                        <div class="text-start mb-3">
+                            <label class="small text-secondary mb-1 ms-1">EMAIL</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="name@example.com">
+                        </div>
+                        <div class="text-start mb-4">
+                            <label class="small text-secondary mb-1 ms-1">PASSWORD</label>
+                            <input type="password" id="loginPass" class="form-control" placeholder="••••••">
+                        </div>
+                        
+                        <button class="btn btn-gold w-100 mb-4" onclick="login()">Enter App</button>
+                        
+                        <div class="pt-3 border-top border-secondary border-opacity-25">
+                            <small class="text-secondary d-block mb-3">New here?</small>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-light btn-sm rounded-3 py-2" data-bs-toggle="modal" data-bs-target="#regCustomerModal">Create Passenger Account</button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-3 py-2" data-bs-toggle="modal" data-bs-target="#regDriverModal">Join as Driver Partner</button>
+                            </div>
+                            <div class="mt-3">
+                                <a href="#" class="text-secondary small text-decoration-none" style="opacity: 0.2; font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#regAdminModal">Admin Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="customerDashboard" class="dashboard fade-in-up">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="glass-card h-100">
+                        <h4 class="mb-4 text-white fw-light">Where to, <span class="brand-gold">Boss?</span></h4>
+                        <div class="mb-3">
+                            <input type="text" id="pickup" class="form-control form-control-lg" placeholder="📍 Pickup Location">
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" id="dropoff" class="form-control form-control-lg" placeholder="🏁 Dropoff Location">
+                        </div>
+                        <div class="mb-4">
+                            <input type="number" id="distance" class="form-control" value="5" placeholder="Distance (KM)">
+                        </div>
+                        <button class="btn btn-gold w-100 py-3" onclick="requestRide()">REQUEST RIDE</button>
+                    </div>
+                </div>
+                
+                <div class="col-md-7">
+                    <div class="glass-card h-100 d-flex flex-column justify-content-center align-items-center">
+                        <div id="customerRideStatus" class="text-center w-100">
+                            <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🗺️</div>
+                            <h5 class="text-secondary fw-light">Your ride status will appear here.</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="driverDashboard" class="dashboard fade-in-up">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-light text-white">Driver <span class="brand-gold">Console</span></h3>
+                <div class="btn-group">
+                    <button class="btn btn-success btn-action" onclick="updateDriverStatus('online')">🟢 Online</button>
+                    <button class="btn btn-dark border border-secondary btn-action" onclick="updateDriverStatus('offline')">🔴 Offline</button>
+                </div>
+            </div>
+            
+            <div class="glass-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                    <h5 class="m-0 text-white">📡 Available Jobs</h5>
+                    <button class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="fetchAvailableRides()">⟳ Refresh</button>
+                </div>
+                <div id="ridesList" class="list-group list-group-flush">
+                    <div class="text-center py-5 text-secondary">
+                        <p class="mb-0">Go Online & Refresh to see jobs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="driverActiveRide" class="glass-card d-none" style="border-color: #28a745; background: rgba(40, 167, 69, 0.1);">
+                <div class="text-center">
+                    <div class="spinner-grow text-success mb-3" role="status"></div>
+                    <h2 class="text-white mb-2">Active Trip</h2>
+                    <p class="text-success-emphasis mb-4">Passenger is waiting.</p>
+                    <button class="btn btn-success btn-lg w-100 py-3 shadow" onclick="completeRide()">✅ COMPLETE RIDE</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminDashboard" class="dashboard fade-in-up">
+            <h2 class="mb-4 text-white">🛡️ Command <span class="brand-gold">Center</span></h2>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="glass-card h-100">
+                        <h4 class="mb-4 text-secondary text-uppercase small ls-1">Pricing Configuration</h4>
+                        <div class="mb-3">
+                            <label class="small text-secondary mb-1">BASE FARE (RM)</label>
+                            <input type="number" id="adminBaseFare" class="form-control text-center fs-4 fw-bold text-white">
+                        </div>
+                        <div class="mb-4">
+                            <label class="small text-secondary mb-1">PRICE PER KM (RM)</label>
+                            <input type="number" id="adminPerKm" class="form-control text-center fs-4 fw-bold text-white">
+                        </div>
+                        <button class="btn btn-gold w-100" onclick="updateRates()">SAVE RATES</button>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="glass-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="text-secondary text-uppercase small ls-1 mb-0">User Database</h4>
+                            <button class="btn btn-sm btn-outline-light rounded-pill" onclick="fetchUsers()">Refresh</button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 400px;">
+                            <table class="table table-glass">
+                                <thead>
+                                    <tr class="text-secondary small text-uppercase">
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="regCustomerModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-body p-4">
+        <h4 class="text-center mb-4 text-white">New Passenger</h4>
+        <input id="rcName" class="form-control mb-3" placeholder="Full Name">
+        <input id="rcEmail" class="form-control mb-3" placeholder="Email Address">
+        <input id="rcPass" type="password" class="form-control mb-3" placeholder="Create Password">
+        <input id="rcPhone" class="form-control mb-4" placeholder="Phone Number">
+        <button class="btn btn-primary w-100 py-2 rounded-3" onclick="registerUser('customer')">Create Account</button>
+    </div></div></div></div>
+
+    <div class="modal fade" id="regDriverModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-0"><div class="modal-body p-4">
+        <h4 class="text-center mb-4 text-white">Driver Application</h4>
+        <input id="rdName" class="form-control mb-3" placeholder="Full Name">
+        <input id="rdEmail" class="form-control mb-3" placeholder="Email Address">
+        <input id="rdPass" type="password" class="form-control mb-3" placeholder="Create Password">
+        <input id="rdVehicle" class="form-control mb-4" placeholder="Vehicle Details (e.g. Red Myvi)">
+        <button class="btn btn-gold w-100 py-2 rounded-3" onclick="registerUser('driver')">Join Fleet</button>
+    </div></div></div></div>
+
+    <div class="modal fade" id="regAdminModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content glass-card p-0 border-warning"><div class="modal-body p-4">
+        <h4 class="text-center mb-2 brand-gold">System Admin</h4>
+        <p class="text-center text-secondary small mb-4">Restricted Access Only</p>
+        <input id="raName" class="form-control mb-3" placeholder="Admin Name">
+        <input id="raEmail" class="form-control mb-3" placeholder="Admin Email">
+        <input id="raPass" type="password" class="form-control mb-3" placeholder="Create Password">
+        <button class="btn btn-warning w-100 py-2 rounded-3" onclick="registerUser('admin')">Grant Access</button>
+    </div></div></div></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ✅ PORT 8080 (Matches your backend)
+        const API_URL = 'http://localhost:8080/api';
+        
+        let token = localStorage.getItem('token');
+        let role = localStorage.getItem('role');
+        let activeRideId = localStorage.getItem('activeRideId');
+        let statusInterval = null;
+
+        if(token) showDashboard();
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    token = data.token;
+                    role = data.role;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('role', role);
+                    localStorage.setItem('email', email);
+                    showDashboard();
+                } else alert(data.error);
+            } catch(e) { alert("Server Offline. Check Terminal."); }
+        }
+
+        async function registerUser(type) {
+            let prefix;
+            if (type === 'customer') prefix = 'rc';
+            else if (type === 'driver') prefix = 'rd';
+            else prefix = 'ra';
+
+            const body = {
+                name: document.getElementById(prefix+'Name').value,
+                email: document.getElementById(prefix+'Email').value,
+                password: document.getElementById(prefix+'Pass').value
+            };
+            if(type === 'customer') body.phone = document.getElementById('rcPhone').value;
+            if(type === 'driver') body.vehicleDetails = document.getElementById('rdVehicle').value;
+
+            const res = await fetch(`${API_URL}/auth/register/${type}`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+            });
+            if(res.ok) { alert("Success! Please Login."); location.reload(); }
+            else alert("Error: " + (await res.json()).error);
+        }
+
+        function logout() { localStorage.clear(); location.reload(); }
+
+        function showDashboard() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('logoutBtn').classList.remove('d-none');
+            document.getElementById('userInfo').innerText = localStorage.getItem('email');
+
+            if(role === 'customer') {
+                document.getElementById('customerDashboard').style.display = 'block';
+                if(activeRideId) startStatusCheck();
+            }
+            else if(role === 'driver') document.getElementById('driverDashboard').style.display = 'block';
+            else if(role === 'admin') {
+                document.getElementById('adminDashboard').style.display = 'block';
+                fetchUsers();
+                fetchRates();
+            }
+        }
+
+        // --- CUSTOMER LOGIC ---
+        async function requestRide() {
+            const body = {
+                pickupLocation: document.getElementById('pickup').value,
+                dropoffLocation: document.getElementById('dropoff').value,
+                distanceKm: parseFloat(document.getElementById('distance').value)
+            };
+            const res = await fetch(`${API_URL}/rides`, {
+                method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+                body: JSON.stringify(body)
+            });
+        }
+    </script>
+</body>
+</html>
